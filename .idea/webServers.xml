@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="ee82fca9-dc90-44e7-aa04-1a2b613d52de" name="2080ti">
+        <fileTransfer rootFolder="/root" accessType="SFTP" host="connect.cqa1.seetacloud.com" port="10600" sshConfigId="2cf6cdcf-d51d-4781-a742-61096a7ffcef" sshConfig="root@connect.cqa1.seetacloud.com:10600 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="8fedc4e9-cf6c-4166-9a59-2ca76eaee632" name="4090SoftwareProject">
+        <fileTransfer rootFolder="/root" accessType="SFTP" host="connect.cqa1.seetacloud.com" port="31666" sshConfigId="ef14a277-ecdc-46d1-8989-cf5ff2ffd034" sshConfig="soft">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

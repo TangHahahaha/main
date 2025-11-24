@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" host="connect.cqa1.seetacloud.com" id="ef14a277-ecdc-46d1-8989-cf5ff2ffd034" port="31666" customName="soft" nameFormat="CUSTOM" username="root" useOpenSSHConfig="true">
+        <option name="customName" value="soft" />
+      </sshConfig>
+    </configs>
+  </component>
+</project>
