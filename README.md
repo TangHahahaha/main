@@ -1,7 +1,7 @@
 <!-- ![](./assets/track-anything-logo.jpg) -->
 
 <div align=center>
-<img src="./assets/track-anything-logo.jpg"/>
+<img src="../AutoTrack/assets/track-anything-logo.jpg"/>
 </div>
 <br/>
 <div align=center>
@@ -26,7 +26,7 @@
 - Object-centric downstream video tasks, such as video inpainting and editing. 
 
 <div align=center>
-<img src="./assets/avengers.gif" width="81%"/>
+<img src="../AutoTrack/assets/avengers.gif" width="81%"/>
 </div>
 
 <!-- ![avengers]() -->
@@ -78,24 +78,3 @@ pip install -r requirements.txt
 # Run the Track-Anything gradio demo.
 python app.py --device cuda:0
 # python app.py --device cuda:0 --sam_model_type vit_b # for lower memory usage
-```
-
-
-## :book: Citation
-If you find this work useful for your research or applications, please cite using this BibTeX:
-```bibtex
-@misc{yang2023track,
-      title={Track Anything: Segment Anything Meets Videos}, 
-      author={Jinyu Yang and Mingqi Gao and Zhe Li and Shang Gao and Fangjing Wang and Feng Zheng},
-      year={2023},
-      eprint={2304.11968},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
-```
-
-## :clap: Acknowledgements
-
-The project is based on [Segment Anything](https://github.com/facebookresearch/segment-anything), [XMem](https://github.com/hkchengrex/XMem), and [E2FGVI](https://github.com/MCG-NKU/E2FGVI). Thanks for the authors for their efforts.
-# AutoTrack
-# AutoTrack

@@ -1,22 +1,9 @@
-import os
 import sys
-import cv2
-import time
-import json
-import queue
-import numpy as np
-import requests
-import concurrent.futures
-from PIL import Image
-from flask import Flask, render_template, request, jsonify, send_file
-import torchvision
-import torch
+from flask import Flask, render_template, jsonify, send_file
 
-from demo import automask_image_app, automask_video_app, sahi_autoseg_app
+#from demo import automask_image_app, automask_video_app, sahi_autoseg_app
 sys.path.append(sys.path[0] + "/tracker")
 sys.path.append(sys.path[0] + "/tracker/model")
-from track_anything import TrackingAnything
-from track_anything import parse_augment
 
 # ... (all the functions defined in the original code except the Gradio part)
 
@@ -69,4 +56,4 @@ if __name__ == "__main__":
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=12212, debug=True)
+    app.run(host="127.0.0.1",port=12212, debug=True)

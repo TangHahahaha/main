@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Track Anything Web UI</title>
+
+    <!-- 字体 & 图标 -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg-app: #0f172a;
+        --bg-panel: #111827;
+        --bg-panel-alt: #020617;
+        --bg-element: #1f2937;
+
+        --primary: #6366f1;
+        --primary-hover: #4f46e5;
+        --accent: #8b5cf6;
+
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --text-dim: #6b7280;
+
+        --border: 1px solid rgba(148, 163, 184, 0.35);
+        --radius: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: radial-gradient(circle at top, #0b1120, #020617 58%, #020617);
+        color: var(--text-main);
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        overflow: hidden;
+      }
+
+      /* 顶部工具栏加大 */
+      header {
+        height: 72px; /* 原来 56px -> 加大 */
+        background: rgba(15, 23, 42, 0.98);
+        border-bottom: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px; /* 稍微加宽一点左右间距 */
+        flex-shrink: 0;
+        backdrop-filter: blur(14px);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        font-size: 0.98rem; /* 字体略大 */
+      }
+      .brand i {
+        color: var(--accent);
+        font-size: 1.4rem; /* 图标略大 */
+      }
+      .brand span span {
+        font-weight: 300;
+        opacity: 0.45;
+        margin-left: 6px;
+      }
+      .system-stats {
+        display: flex;
+        gap: 18px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.8rem; /* 略大一点 */
+        color: var(--text-dim);
+      }
+      .stat-item i {
+        margin-right: 4px;
+      }
+      .stat-item span {
+        color: var(--primary);
+      }
+
+      /* 主工作区布局：左中右三列 */
+      .workspace {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr) 260px; /* 左宽中等右窄 */
+        height: calc(100vh - 72px); /* 同步修改：72px 顶栏高度 */
+        overflow: hidden;
+      }
+
+      .panel {
+        background: var(--bg-panel-alt);
+        border-right: var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .panel-right {
+        border-right: none;
+        border-left: var(--border);
+        background: #020617;
+      }
+
+      .panel-header {
+        padding: 12px 16px;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-dim);
+        border-bottom: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .panel-header i {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+      }
+
+      /* 左侧资源区 */
+      .resource-list {
+        padding: 14px;
+        overflow-y: auto;
+      }
+      .upload-zone {
+        border-radius: 14px;
+        border: 1px dashed rgba(148, 163, 184, 0.7);
+        padding: 20px 14px;
+        text-align: center;
+        cursor: pointer;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        background: radial-gradient(circle at top left, #111827, #020617);
+        transition: 0.2s ease;
+      }
+      .upload-zone:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35),
+          0 18px 35px rgba(15, 23, 42, 0.95);
+      }
+      .upload-zone i {
+        font-size: 1.4rem;
+        margin-bottom: 6px;
+        display: block;
+      }
+
+      .file-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 10px;
+        margin-top: 14px;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        font-size: 0.8rem;
+      }
+      .file-item i {
+        color: #facc15;
+      }
+      .file-item-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .badge {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(16, 185, 129, 0.5);
+        color: #6ee7b7;
+        background: rgba(22, 163, 74, 0.12);
+      }
+      .video-meta {
+        margin-top: 10px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 9px 10px;
+        margin-top: 14px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(130deg, #0ea5e9, #22c55e);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5);
+        transition: 0.15s ease;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.04);
+      }
+      .btn:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.9);
+      }
+      .btn-secondary {
+        background: rgba(30, 64, 175, 0.95);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45);
+      }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        color: var(--text-muted);
+        box-shadow: none;
+      }
+
+      /* 中间画布 */
+      .canvas-area {
+        display: flex;
+        flex-direction: column;
+        background: radial-gradient(circle at top, #020617, #020617 55%, #020617);
+        position: relative;
+      }
+      .viewport {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-image: radial-gradient(#0b1120 1px, transparent 1px);
+        background-size: 20px 20px;
+        padding: 16px;
+      }
+      .frame-wrapper {
+        position: relative;
+        width: 82%;
+        max-width: 960px;
+        aspect-ratio: 16 / 9;
+        border-radius: 18px;
+        padding: 8px;
+        background: radial-gradient(circle at top left, #111827, #020617 70%);
+        box-shadow: 0 26px 70px rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+      }
+      #frame-img {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        display: block;
+        object-fit: contain;
+        cursor: crosshair;
+        background: #020617;
+      }
+      .frame-label {
+        position: absolute;
+        left: 20px;
+        bottom: 18px;
+        font-size: 0.7rem;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        color: var(--text-muted);
+        backdrop-filter: blur(9px);
+      }
+      .frame-label span {
+        color: #e5e7eb;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      /* 时间轴 + 起止帧控制 */
+      .timeline {
+        height: 120px;
+        padding: 10px 20px 14px;
+        background: rgba(15, 23, 42, 0.98);
+        border-top: var(--border);
+      }
+      .timeline-row {
+        display: grid;
+        grid-template-columns: 140px minmax(0, 1fr) 60px;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .timeline-label {
+        font-size: 0.76rem;
+        color: var(--text-muted);
+      }
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--primary);
+      }
+      .timeline-value {
+        font-size: 0.72rem;
+        text-align: right;
+        font-family: "JetBrains Mono", monospace;
+        color: #e5e7eb;
+      }
+
+      /* 右侧控制面板 */
+      .control-group {
+        padding: 14px 16px;
+        border-bottom: var(--border);
+        font-size: 0.82rem;
+      }
+      .control-label {
+        display: block;
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+      }
+
+      .toggle-switch {
+        display: flex;
+        background: #020617;
+        border-radius: 999px;
+        padding: 2px;
+        border: 1px solid rgba(148, 163, 184, 0.55);
+        margin-bottom: 8px;
+      }
+      .toggle-option {
+        flex: 1;
+        text-align: center;
+        padding: 6px 0;
+        font-size: 0.78rem;
+        cursor: pointer;
+        border-radius: 999px;
+        color: var(--text-dim);
+        transition: 0.15s ease;
+      }
+      .toggle-option.active {
+        background: linear-gradient(135deg, #4f46e5, #22c55e);
+        color: #f9fafb;
+        font-weight: 600;
+        box-shadow: 0 8px 18px rgba(59, 130, 246, 0.5);
+      }
+
+      .btn-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .btn-small {
+        padding: 6px 8px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        width: 100%;
+      }
+
+      select {
+        width: 100%;
+        min-height: 80px;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: #020617;
+        color: #e5e7eb;
+        padding: 6px;
+        font-size: 0.8rem;
+      }
+
+      .btn-large {
+        width: 100%;
+        padding: 9px 10px;
+        border-radius: 999px;
+        margin-top: 6px;
+        font-size: 0.8rem;
+      }
+
+      .status {
+        min-height: 22px;
+        font-size: 0.74rem;
+        color: #a5b4fc;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      /* ✅ 进度条样式 */
+      .progress-container {
+        margin-top: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        overflow: hidden;
+      }
+      .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #22c55e, #0ea5e9);
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
+        transition: width 0.2s ease;
+      }
+      .progress-text {
+        margin-top: 4px;
+        font-size: 0.7rem;
+        color: var(--text-dim);
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .result-group {
+        margin-bottom: 10px;
+      }
+      .result-group video {
+        width: 100%;
+        max-height: 220px;
+        border-radius: 12px;
+        background: #020617;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        object-fit: contain;
+      }
+
+      @media (max-width: 1024px) {
+        .workspace {
+          grid-template-columns: 230px minmax(0, 1fr);
+        }
+        .panel-right {
+          display: none;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          overflow: auto;
+        }
+        .workspace {
+          display: block;
+          height: auto;
+        }
+        .canvas-area {
+          height: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <i class="fa-solid fa-cube"></i>
+        <span>TRACK ANYTHING <span>STUDIO</span></span>
+      </div>
+      <div class="system-stats">
+        <div class="stat-item">
+          <i class="fa-solid fa-microchip"></i> GPU: <span>READY</span>
+        </div>
+        <div class="stat-item">
+          <i class="fa-solid fa-memory"></i> VRAM: <span>—</span>
+        </div>
+        <div class="stat-item">
+          <i class="fa-solid fa-clock"></i> LATENCY: <span>—</span>
+        </div>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">
+        SAM + XMem + E2FGVI
+      </div>
+    </header>
+
+    <!-- 整个工作区：上传完成后显示 -->
+    <div class="workspace" id="controls-section" >
+      <!-- 左侧：工程资源 + 结果 -->
+      <aside class="panel">
+        <div class="panel-header">
+          <span>工程资源</span>
+          <i class="fa-solid fa-folder-tree"></i>
+        </div>
+        <div class="resource-list">
+          <input type="file" id="video-input" accept="video/*"  />
+          <div class="upload-zone" id="upload-zone">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <div>点击选择视频文件</div>
+            <div style="margin-top: 4px; font-size: 0.7rem;">支持 mp4 / avi / mov 等</div>
+          </div>
+
+          <div id="file-list-container">
+            <div class="file-item" id="file-item" style="display: none;">
+              <i class="fa-regular fa-file-video"></i>
+              <div class="file-item-name" id="file-name"></div>
+              <span class="badge" id="file-status">PENDING</span>
+            </div>
+          </div>
+
+          <button id="upload-btn" class="btn">
+            <i class="fa-solid fa-server"></i>
+            上传并解析到后端
+          </button>
+
+          <div class="video-meta" id="video-info">尚未上传视频</div>
+
+          <!-- 结果预览（左侧） -->
+          <div class="control-group" id="result-section" style="display: none; margin-top: 12px;">
+            <span class="control-label">结果预览</span>
+            <div class="result-group">
+              <div style="font-size: 0.76rem; margin-bottom: 4px; color: var(--text-muted);">
+                Tracking 结果
+              </div>
+              <video id="track-video" controls></video>
+            </div>
+            <div class="result-group">
+              <div style="font-size: 0.76rem; margin-bottom: 4px; color: var(--text-muted);">
+                Inpainting 结果
+              </div>
+              <video id="inpaint-video" controls></video>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中间：画布 + 起止帧 -->
+      <main class="canvas-area">
+        <div class="viewport">
+          <div class="frame-wrapper">
+            <img id="frame-img" alt="当前帧" />
+            <div class="frame-label">
+              当前帧：<span id="frame-index">0 / 0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-row">
+            <div class="timeline-label">起始帧</div>
+            <input type="range" id="start-frame-slider" min="0" max="0" value="0" />
+            <div class="timeline-value" id="start-frame-label">0</div>
+          </div>
+          <div class="timeline-row">
+            <div class="timeline-label">结束帧</div>
+            <input type="range" id="end-frame-slider" min="0" max="0" value="0" />
+            <div class="timeline-value" id="end-frame-label">0</div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 右侧：交互控制 -->
+      <aside class="panel panel-right">
+        <div class="panel-header">
+          <span>交互控制</span>
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+
+        <!-- 点击类型 -->
+        <div class="control-group">
+          <span class="control-label">点击类型（Point Prompt）</span>
+          <div class="toggle-switch">
+            <div class="toggle-option active" data-label="positive">正样本（前景）</div>
+            <div class="toggle-option" data-label="negative">负样本（背景）</div>
+          </div>
+        </div>
+
+        <!-- Inpaint 缩放 -->
+        <div class="control-group">
+          <span class="control-label">Inpaint 缩放比例</span>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">
+            VRAM 不够可以适当调小
+          </div>
+          <input
+            type="range"
+            id="resize-ratio-slider"
+            min="0.02"
+            max="1"
+            step="0.02"
+            value="1"
+          />
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 0.72rem;
+              color: var(--text-dim);
+            "
+          >
+            <span>0.02</span>
+            <span>当前：<span id="resize-ratio-label">1.00</span></span>
+          </div>
+        </div>
+
+        <!-- 掩码操作 -->
+        <div class="control-group">
+          <span class="control-label">掩码管理</span>
+          <div class="btn-row">
+            <button id="add-mask-btn" class="btn btn-ghost btn-small">添加掩码</button>
+            <button id="clear-clicks-btn" class="btn btn-ghost btn-small">清空点击</button>
+            <button id="remove-masks-btn" class="btn btn-ghost btn-small">清空掩码</button>
+          </div>
+        </div>
+
+        <!-- 掩码选择 -->
+        <div class="control-group">
+          <span class="control-label">掩码选择（用于 Track / Inpaint）</span>
+          <select id="mask-select" multiple size="5"></select>
+        </div>
+
+        <!-- Track & Inpaint -->
+        <div class="control-group">
+          <span class="control-label">AI 操作</span>
+          <button id="track-btn" class="btn-large btn">
+            <i class="fa-solid fa-fingerprint"></i>&nbsp;开始 Tracking
+          </button>
+          <button id="inpaint-btn" class="btn-large btn btn-secondary">
+            <i class="fa-solid fa-eraser"></i>&nbsp;Inpainting 消除
+          </button>
+        </div>
+
+        <!-- 状态 + 进度条 -->
+        <div class="control-group">
+          <span class="control-label">状态</span>
+          <div id="status-log" class="status"></div>
+          <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+          <div id="progress-text" class="progress-text"></div>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      const API_BASE = "http://127.0.0.1:8000";
+
+      let sessionId = null;
+      let totalFrames = 0;
+      let currentFrameIndex = 0;
+      let imgNaturalWidth = 0;
+      let imgNaturalHeight = 0;
+      let currentLabel = 1; // 1=positive, 0=negative
+
+      // DOM 引用
+      const controlsSection = document.getElementById("controls-section");
+      const uploadZone = document.getElementById("upload-zone");
+      const videoInput = document.getElementById("video-input");
+      const uploadBtn = document.getElementById("upload-btn");
+      const videoInfoEl = document.getElementById("video-info");
+      const fileItem = document.getElementById("file-item");
+      const fileNameEl = document.getElementById("file-name");
+      const fileStatusEl = document.getElementById("file-status");
+
+      const frameImg = document.getElementById("frame-img");
+      const frameIndexEl = document.getElementById("frame-index");
+      const startSlider = document.getElementById("start-frame-slider");
+      const endSlider = document.getElementById("end-frame-slider");
+      const startLabel = document.getElementById("start-frame-label");
+      const endLabel = document.getElementById("end-frame-label");
+
+      const resizeSlider = document.getElementById("resize-ratio-slider");
+      const resizeLabel = document.getElementById("resize-ratio-label");
+
+      const addMaskBtn = document.getElementById("add-mask-btn");
+      const clearClicksBtn = document.getElementById("clear-clicks-btn");
+      const removeMasksBtn = document.getElementById("remove-masks-btn");
+      const maskSelect = document.getElementById("mask-select");
+
+      const trackBtn = document.getElementById("track-btn");
+      const inpaintBtn = document.getElementById("inpaint-btn");
+      const trackVideo = document.getElementById("track-video");
+      const inpaintVideo = document.getElementById("inpaint-video");
+      const resultSection = document.getElementById("result-section");
+      const statusLog = document.getElementById("status-log");
+
+      // ✅ 进度条 DOM
+      const progressBar = document.getElementById("progress-bar");
+      const progressText = document.getElementById("progress-text");
+
+      // 点击类型切换
+      document.querySelectorAll(".toggle-option").forEach((opt) => {
+        opt.addEventListener("click", () => {
+          document
+            .querySelectorAll(".toggle-option")
+            .forEach((o) => o.classList.remove("active"));
+          opt.classList.add("active");
+          currentLabel = opt.dataset.label === "positive" ? 1 : 0;
+        });
+      });
+
+      // 记录帧图像尺寸
+      frameImg.onload = () => {
+        imgNaturalWidth = frameImg.naturalWidth;
+        imgNaturalHeight = frameImg.naturalHeight;
+      };
+
+      function logStatus(msg) {
+        const time = new Date().toLocaleTimeString();
+        statusLog.textContent = `[${time}] ${msg}`;
+      }
+
+      // ✅ 设置进度条
+      function setProgress(percent, text) {
+        const p = Math.max(0, Math.min(100, percent));
+        progressBar.style.width = p + "%";
+        if (text !== undefined) {
+          progressText.textContent = text;
+        }
+      }
+
+      // 刷新当前帧显示
+      async function refreshFrame() {
+        if (!sessionId) return;
+        frameImg.src = `${API_BASE}/api/frame/${sessionId}/${currentFrameIndex}?type=painted&t=${Date.now()}`;
+        frameIndexEl.textContent = `${currentFrameIndex + 1} / ${totalFrames}`;
+      }
+
+      // 上传区域点击 -> 打开文件选择
+      uploadZone.addEventListener("click", () => {
+        videoInput.click();
+      });
+
+      // 选择文件后，更新左侧文件信息显示
+      videoInput.addEventListener("change", () => {
+        const file = videoInput.files[0];
+        if (!file) return;
+        fileItem.style.display = "flex";
+        fileNameEl.textContent = file.name;
+        fileStatusEl.textContent = "LOCAL";
+      });
+
+      // 上传并解析视频
+      uploadBtn.addEventListener("click", async () => {
+        const file = videoInput.files[0];
+        if (!file) {
+          alert("请先选择一个视频文件");
+          return;
+        }
+        const formData = new FormData();
+        formData.append("file", file);
+        try {
+          logStatus("正在上传并解析视频...");
+          fileStatusEl.textContent = "UPLOADING...";
+          setProgress(10, "上传中...");
+
+          const resp = await fetch(`${API_BASE}/api/upload_video`, {
+            method: "POST",
+            body: formData,
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.detail || "上传失败");
+          }
+          setProgress(60, "后端解析中...");
+
+          const data = await resp.json();
+          sessionId = data.session_id;
+          totalFrames = data.total_frames || 0;
+          currentFrameIndex = 0;
+
+          videoInfoEl.textContent = data.video_info || "上传成功";
+          fileStatusEl.textContent = "READY";
+
+          // 初始化滑块范围
+          startSlider.min = 0;
+          startSlider.max = Math.max(0, totalFrames - 1);
+          startSlider.value = 0;
+          endSlider.min = 0;
+          endSlider.max = Math.max(0, totalFrames - 1);
+          endSlider.value = Math.max(0, totalFrames - 1);
+
+          startLabel.textContent = "1";
+          endLabel.textContent = String(totalFrames);
+
+          controlsSection.style.display = "grid";
+          logStatus("视频解析完成，可以开始点击标注");
+          await refreshFrame();
+          setProgress(100, "视频就绪");
+          setTimeout(() => setProgress(0, ""), 800);
+        } catch (e) {
+          console.error(e);
+          fileStatusEl.textContent = "ERROR";
+          logStatus(e.message || "上传过程中出错");
+          setProgress(0, "上传失败");
+        }
+      });
+
+      // 起始帧滑块
+      startSlider.addEventListener("change", async (e) => {
+        if (!sessionId) return;
+        const idx = parseInt(e.target.value, 10) || 0;
+        currentFrameIndex = idx;
+
+        if (parseInt(endSlider.value, 10) < idx) {
+          endSlider.value = idx;
+          endLabel.textContent = String(idx + 1);
+          await fetch(`${API_BASE}/api/set_track_end`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, frame_index: idx }),
+          });
+        }
+
+        startLabel.textContent = String(idx + 1);
+        try {
+          await fetch(`${API_BASE}/api/select_frame`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, frame_index: idx }),
+          });
+          await refreshFrame();
+          logStatus(`切换到起始帧 ${idx + 1}`);
+        } catch (err) {
+          console.error(err);
+          logStatus("切换起始帧失败");
+        }
+      });
+
+      // 结束帧滑块
+      endSlider.addEventListener("change", async (e) => {
+        if (!sessionId) return;
+        let idx = parseInt(e.target.value, 10) || 0;
+        if (idx < currentFrameIndex) {
+          idx = currentFrameIndex;
+          endSlider.value = idx;
+        }
+        endLabel.textContent = String(idx + 1);
+        try {
+          await fetch(`${API_BASE}/api/set_track_end`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, frame_index: idx }),
+          });
+          logStatus(`设置结束帧为 ${idx + 1}`);
+        } catch (err) {
+          console.error(err);
+          logStatus("设置结束帧失败");
+        }
+      });
+
+      // Inpaint 缩放比例
+      resizeSlider.addEventListener("change", async (e) => {
+        if (!sessionId) return;
+        const value = parseFloat(e.target.value);
+        resizeLabel.textContent = value.toFixed(2);
+        try {
+          await fetch(`${API_BASE}/api/set_resize_ratio`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, resize_ratio: value }),
+          });
+          logStatus(`设置 inpaint 缩放比例为 ${value.toFixed(2)}`);
+        } catch (err) {
+          console.error(err);
+          logStatus("设置缩放比例失败");
+        }
+      });
+
+      // 点击帧图像 -> SAM 分割
+      frameImg.addEventListener("click", async (e) => {
+        if (!sessionId || !imgNaturalWidth || !imgNaturalHeight) return;
+        const rect = frameImg.getBoundingClientRect();
+        const xOnImg = e.clientX - rect.left;
+        const yOnImg = e.clientY - rect.top;
+        const x = Math.round((xOnImg * imgNaturalWidth) / rect.width);
+        const y = Math.round((yOnImg * imgNaturalHeight) / rect.height);
+
+        try {
+          await fetch(`${API_BASE}/api/sam_click`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              session_id: sessionId,
+              x,
+              y,
+              label: currentLabel,
+            }),
+          });
+          logStatus(
+            `添加 ${currentLabel === 1 ? "正" : "负"} 样本点 (${x}, ${y})`
+          );
+          await refreshFrame();
+        } catch (err) {
+          console.error(err);
+          logStatus("点击分割失败");
+        }
+      });
+
+      // 添加当前掩码
+      addMaskBtn.addEventListener("click", async () => {
+        if (!sessionId) return;
+        try {
+          const resp = await fetch(`${API_BASE}/api/add_mask`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId }),
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.detail || "添加掩码失败");
+          }
+          const data = await resp.json();
+          maskSelect.innerHTML = "";
+          (data.mask_names || []).forEach((name) => {
+            const opt = document.createElement("option");
+            opt.value = name;
+            opt.textContent = name;
+            maskSelect.appendChild(opt);
+          });
+          logStatus("已添加当前帧掩码");
+        } catch (err) {
+          console.error(err);
+          logStatus(err.message || "添加掩码失败，请确认已经先点击生成掩码");
+        }
+      });
+
+      // 清空点击
+      clearClicksBtn.addEventListener("click", async () => {
+        if (!sessionId) return;
+        try {
+          await fetch(`${API_BASE}/api/clear_clicks`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId }),
+          });
+          await refreshFrame();
+          logStatus("已清空历史点击");
+        } catch (err) {
+          console.error(err);
+          logStatus("清空点击失败");
+        }
+      });
+
+      // 清空所有掩码
+      removeMasksBtn.addEventListener("click", async () => {
+        if (!sessionId) return;
+        try {
+          const resp = await fetch(`${API_BASE}/api/remove_all_masks`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId }),
+          });
+          await resp.json().catch(() => ({}));
+          maskSelect.innerHTML = "";
+          logStatus("已清空所有掩码");
+        } catch (err) {
+          console.error(err);
+          logStatus("清空掩码失败");
+        }
+      });
+
+      // 掩码选择发生变化 -> 更新显示（叠加查看）
+      maskSelect.addEventListener("change", async () => {
+        if (!sessionId) return;
+        const selected = Array.from(maskSelect.selectedOptions).map((o) => o.value);
+        try {
+          await fetch(`${API_BASE}/api/show_mask`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, mask_names: selected }),
+          });
+          await refreshFrame();
+          logStatus(`选择掩码: ${selected.join(", ") || "无"}`);
+        } catch (err) {
+          console.error(err);
+          logStatus("更新掩码显示失败");
+        }
+      });
+
+      // 开始 Tracking
+      trackBtn.addEventListener("click", async () => {
+        if (!sessionId) return;
+        const selected = Array.from(maskSelect.selectedOptions).map((o) => o.value);
+        try {
+          logStatus("开始 tracking ...");
+          setProgress(15, "Tracking 进行中...");
+          const resp = await fetch(`${API_BASE}/api/track`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, mask_names: selected }),
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.detail || "tracking 失败");
+          }
+          setProgress(70, "合成结果视频...");
+          const data = await resp.json();
+          trackVideo.src = `${API_BASE}${data.video_url}`;
+          resultSection.style.display = "block";
+          logStatus("tracking 完成");
+          setProgress(100, "Tracking 完成");
+          setTimeout(() => setProgress(0, ""), 800);
+        } catch (err) {
+          console.error(err);
+          logStatus(err.message || "tracking 失败");
+          setProgress(0, "Tracking 失败");
+        }
+      });
+
+      // Inpaint
+      inpaintBtn.addEventListener("click", async () => {
+        if (!sessionId) return;
+        const selected = Array.from(maskSelect.selectedOptions).map((o) => o.value);
+        try {
+          logStatus("开始 inpainting ...");
+          setProgress(20, "Inpainting 进行中...");
+          const resp = await fetch(`${API_BASE}/api/inpaint`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, mask_names: selected }),
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.detail || "inpaint 失败");
+          }
+          setProgress(75, "合成结果视频...");
+          const data = await resp.json();
+          inpaintVideo.src = `${API_BASE}${data.video_url}`;
+          resultSection.style.display = "block";
+          logStatus("inpainting 完成");
+          setProgress(100, "Inpainting 完成");
+          setTimeout(() => setProgress(0, ""), 800);
+        } catch (err) {
+          console.error(err);
+          logStatus(err.message || "inpaint 失败");
+          setProgress(0, "Inpainting 失败");
+        }
+      });
+    </script>
+  </body>
+</html>
